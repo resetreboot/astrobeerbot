@@ -2,6 +2,8 @@ bin/
 lib/
 lib64/
 include/
+share/
 *.pyc
+*.swp
 pip-selfcheck.json
 config.py

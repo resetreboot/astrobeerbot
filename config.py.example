@@ -1,0 +1,5 @@
+# Simple configuration example
+
+config = {
+    "TOKEN": "Your telegram bot token goes here"
+}
