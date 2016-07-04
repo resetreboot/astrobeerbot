@@ -80,14 +80,14 @@ def tiempo(bot, update):
         for element in weather:
             forecast_time = datetime.datetime.fromtimestamp(element['dt'])
             if forecast_time.month == today.month and forecast_time.day == today.day and forecast_time.hour >= 23:
-                tonight = element['main']
+                tonight = element
 
         if not tonight:
             weather_message = 'Asómate a la ventana, o sal del bar, que ya es de noche'
 
         else:
-            weather_message = "Esta noche tendremos unos {0}º con una humedad relativa de {1}%, ".format(tonight['temp'],
-                                                                                                          tonight['humidity'])
+            weather_message = "Esta noche tendremos unos {0}º con una humedad relativa de {1}%, ".format(tonight['main']['temp'],
+                                                                                                          tonight['main']['humidity'])
             weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(tonight['wind']['speed'],
                                                                                                tonight['clouds']['all'])
 
