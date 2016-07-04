@@ -175,7 +175,7 @@ def manchas(bot, update):
 
     for tag in soup.find_all('img'):
         if 'synoptic' in tag['src']:
-            img_url = tag['src']
+            img_url = 'http://sohowww.nascom.nasa.gov' + tag['src']
 
     bot.sendChatAction(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
     bot.sendPhoto(update.message.chat_id, photo=img_url)
