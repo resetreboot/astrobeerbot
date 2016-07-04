@@ -132,6 +132,39 @@ def tiempo(bot, update):
         bot.sendMessage(update.message.chat_id, text=weather_message)
 
 
+def faselunar(bot, update):
+    fases = [
+        "nueva",
+        "creciente"
+        "cuarto creciente",
+        "creciente gibosa",
+        "llena",
+        "gibosa menguante",
+        "cuarto menguante",
+        "menguante"
+    ]
+    today = datetime.datetime.now()
+    year = today.year
+    month = today.month
+    day = today.day
+
+    if month < 3:
+        year -= 1
+        month += 12
+
+    month += 1
+    c = 365.25 * year
+    e = 30.6 * month    # Blame C coders saving on characters...
+    jd = c + e + day - 694039.09
+    jd /= 29.53
+    jd -= round(jd)
+    b = (jd * 8) + 0.5
+    b = b % 7
+
+    message = "Hoy tenemos luna " + fases[b]
+    bot.sendMessage(update.message.chat_id, text=message)
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -147,6 +180,7 @@ def main():
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("apod", apod))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
+    dispatcher.add_handler(CommandHandler("faselunar", faselunar))
 
     # log all errors
     dispatcher.add_error_handler(error)
