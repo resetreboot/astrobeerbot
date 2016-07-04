@@ -4,6 +4,7 @@
 import logging
 import requests
 import sys
+import datetime
 
 from bs4 import BeautifulSoup
 from telegram.ext import Updater, Handler, CommandHandler, MessageHandler
@@ -57,6 +58,45 @@ def apod(bot, update):
     bot.sendPhoto(update.message.chat_id, photo=img_url)
 
 
+def tiempo(bot, update):
+    appkey = config.get('OWM')
+    if not appkey:
+        bot.sendMessage(update.message.chat_id, text='Deja la cerveza y configura el servicio de OWM.')
+        return
+
+    # TODO: Accept parameters on this call
+    city = None
+
+    if not city:
+        city = "Madrid,ES"
+
+    params = {"q": city, "APPID": appkey, "units": "metric"}
+
+    weatherdata = requests.get('http://api.openweathermap.org/data/2.5/forecast/city', params=params)
+    if "list" in weatherdata.json():
+        weather = weatherdata.json()['list']
+        today = datetime.datetime.now()
+        tonight = None
+        for element in weather:
+            forecast_time = datetime.datetime.fromtimestamp(element['main']['dt'])
+            if forecast_time.month == today.month and forecast_time.day == today.day and forecast_time.hour >= 23:
+                tonight = element['main']
+
+        if not tonight:
+            weather_message = 'Asómate a la ventana, o sal del bar, que ya es de noche'
+
+        else:
+            weather_message = "Esta noche tendremos unos {0}º con una humedad relativa de {1}%, ".format(tonight['temp'],
+                                                                                                          tonight['humidity'])
+            weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(tonight['wind']['speed'],
+                                                                                               tonight['clouds']['all'])
+
+    else:
+        weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
+
+    bot.sendMessage(update.message.chat_id, text=weather_message)
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -71,6 +111,7 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("apod", apod))
+    dispatcher.add_handler(CommandHandler("tiempo", tiempo))
 
     # log all errors
     dispatcher.add_error_handler(error)

@@ -1,5 +1,6 @@
 # Simple configuration example
 
 config = {
-    "TOKEN": "Your telegram bot token goes here"
+    "TOKEN": "Your telegram bot token goes here",
+    "OWM": "Your OpenWeatherMap token geos here"
 }
