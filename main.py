@@ -41,6 +41,7 @@ def help(bot, update):
 Para mostrar la APOD actual, escribe /apod y te la mostraré.
 Con /tiempo te diré qué tal se presenta el tiempo esta misma noche.
 Si usas /faselunar te diré qué fase lunar tenemos hoy.
+Para ver las manchas solares, /manchas te mostrará el sol actualizado.
                     """)
 
 
@@ -163,6 +164,23 @@ def faselunar(bot, update):
     bot.sendMessage(update.message.chat_id, text=message)
 
 
+def manchas(bot, update):
+    soho = requests.get('http://sohowww.nascom.nasa.gov/sunspots/')
+    if soho.status_code > 299:
+        bot.sendMessage(update.message.chat_id, text='La NASA esta como las grecas, así que no hay SOHO.')
+        return
+
+    soup = BeautifulSoup(soho.text, 'html.parser')
+    img_url = None
+
+    for tag in soup.find_all('img'):
+        if 'synoptic' in tag['src']:
+            img_url = tag['src']
+
+    bot.sendChatAction(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
+    bot.sendPhoto(update.message.chat_id, photo=img_url)
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -179,6 +197,7 @@ def main():
     dispatcher.add_handler(CommandHandler("apod", apod))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
     dispatcher.add_handler(CommandHandler("faselunar", faselunar))
+    dispatcher.add_handler(CommandHandler("manchas", manchas))
 
     # log all errors
     dispatcher.add_error_handler(error)
