@@ -88,8 +88,12 @@ def tiempo(bot, update):
         else:
             weather_message = "Esta noche tendremos unos {0}º con una humedad relativa de {1}%, ".format(tonight['main']['temp'],
                                                                                                           tonight['main']['humidity'])
-            weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(tonight['wind']['speed'],
-                                                                                               tonight['clouds']['all'])
+            if tonight['wind']:
+                weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(tonight['wind']['speed'],
+                                                                                                   tonight['clouds']['all'])
+
+            else:
+                weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(tonight['clouds']['all'])
 
     else:
         weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
