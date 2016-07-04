@@ -92,7 +92,9 @@ def tiempo(bot, update):
         for day in range(0, 4):
             if day > 0:
                 current_day += datetime.timedelta(days=day)
-                current_day.hour = 12     # So it shows the night of that day for sure
+                if current_day.hour > 23:
+                    current_day -= datetime.timedelta(hours=4)
+
                 if day == 1:
                     date_string = "Mañana por la noche"
 
