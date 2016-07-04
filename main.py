@@ -62,9 +62,6 @@ def apod(bot, update):
         if tag['name'] == 'keywords':
             meta = tag['content']
 
-    print(img_url)
-    print(meta)
-
     bot.sendMessage(update.message.chat_id, text=meta)
     bot.sendChatAction(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
     bot.sendPhoto(update.message.chat_id, photo=img_url)
@@ -89,9 +86,9 @@ def tiempo(bot, update):
         weather = weatherdata.json()['list']
         today = datetime.datetime.now()
         current_day = today
-        for day in range(0, 4):
+        for day in range(0, 5):
             if day > 0:
-                current_day += datetime.timedelta(days=day)
+                current_day = today + datetime.timedelta(days=day)
                 if current_day.hour > 23:
                     current_day -= datetime.timedelta(hours=4)
 
