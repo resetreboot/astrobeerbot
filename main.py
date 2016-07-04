@@ -156,7 +156,7 @@ def faselunar(bot, update):
     jd /= 29.53
     jd -= round(jd)
     b = (jd * 8) + 0.5
-    b = b % 7
+    b = int(b % 7)
 
     message = "Hoy tenemos luna " + fases[b]
     bot.sendMessage(update.message.chat_id, text=message)
