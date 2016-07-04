@@ -113,11 +113,11 @@ def tiempo(bot, update):
             else:
                 if night and night['main']:
                     weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(night['main']['temp'],
-														     night['main']['humidity'])
+                                                                                                                     night['main']['humidity'])
 
                     if night['wind']:
                         weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(night['wind']['speed'],
-												       night['clouds']['all'])
+                                                                                                           night['clouds']['all'])
 
                     else:
                         weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(night['clouds']['all'])
