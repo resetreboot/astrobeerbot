@@ -78,7 +78,7 @@ def tiempo(bot, update):
         today = datetime.datetime.now()
         tonight = None
         for element in weather:
-            forecast_time = datetime.datetime.fromtimestamp(element['main']['dt'])
+            forecast_time = datetime.datetime.fromtimestamp(element['dt'])
             if forecast_time.month == today.month and forecast_time.day == today.day and forecast_time.hour >= 23:
                 tonight = element['main']
 
