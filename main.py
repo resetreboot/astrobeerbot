@@ -12,6 +12,17 @@ from telegram import ChatAction
 
 from config import config
 
+# Constants
+WEEKDAYS = {
+    "1": "lunes",
+    "2": "martes",
+    "3": "miércoles",
+    "4": "jueves",
+    "5": "viernes",
+    "6": "sábado",
+    "7": "domingo"
+}
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -77,29 +88,45 @@ def tiempo(bot, update):
     if "list" in weatherdata.json():
         weather = weatherdata.json()['list']
         today = datetime.datetime.now()
-        tonight = None
-        for element in weather:
-            forecast_time = datetime.datetime.fromtimestamp(element['dt'])
-            if forecast_time.month == today.month and forecast_time.day == today.day and forecast_time.hour >= 23:
-                tonight = element
+        current_day = today
+        for day in range(0, 4):
+            if day > 0:
+                current_day += datetime.timedelta(days=day)
+                current_day.hour = 12     # So it shows the night of that day for sure
+                if day == 1:
+                    date_string = "Mañana por la noche"
 
-        if not tonight:
-            weather_message = 'Asómate a la ventana, o sal del bar, que ya es de noche'
-
-        else:
-            weather_message = "Esta noche tendremos unos {0}º con una humedad relativa de {1}%, ".format(tonight['main']['temp'],
-                                                                                                          tonight['main']['humidity'])
-            if tonight['wind']:
-                weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(tonight['wind']['speed'],
-                                                                                                   tonight['clouds']['all'])
+                else:
+                    date_string = "El {0} por la noche".format(WEEKDAYS[current_day.isoweekday()])
 
             else:
-                weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(tonight['clouds']['all'])
+                date_string = "Esta noche"
+
+            night = None
+            for element in weather:
+                forecast_time = datetime.datetime.fromtimestamp(element['dt'])
+                if forecast_time.month == current_day.month and forecast_time.day == current_day.day and forecast_time.hour >= 23:
+                    night = element
+
+            if not night and day == 0:
+                weather_message = 'Asómate a la ventana, o sal del bar, que ya es de noche'
+
+            else:
+                weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(night['main']['temp'],
+                                                                                                                 night['main']['humidity'])
+
+                if night['wind']:
+                    weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(night['wind']['speed'],
+                                                                                                       night['clouds']['all'])
+
+                else:
+                    weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(night['clouds']['all'])
+
+            bot.sendMessage(update.message.chat_id, text=weather_message)
 
     else:
         weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
-
-    bot.sendMessage(update.message.chat_id, text=weather_message)
+        bot.sendMessage(update.message.chat_id, text=weather_message)
 
 
 def main():
