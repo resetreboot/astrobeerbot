@@ -28,6 +28,7 @@ def start(bot, update):
 def help(bot, update):
     bot.sendMessage(update.message.chat_id, text="""Astro Beer Bot v1.0:
 Para mostrar la APOD actual, escribe /apod y te la mostraré.
+Con /tiempo te diré qué tal se presenta el tiempo esta misma noche.
                     """)
 
 
