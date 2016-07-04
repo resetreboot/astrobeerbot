@@ -14,13 +14,13 @@ from config import config
 
 # Constants
 WEEKDAYS = {
-    "1": "lunes",
-    "2": "martes",
-    "3": "miércoles",
-    "4": "jueves",
-    "5": "viernes",
-    "6": "sábado",
-    "7": "domingo"
+    1: "lunes",
+    2: "martes",
+    3: "miércoles",
+    4: "jueves",
+    5: "viernes",
+    6: "sábado",
+    7: "domingo"
 }
 
 # Enable logging
@@ -114,17 +114,18 @@ def tiempo(bot, update):
                 weather_message = 'Asómate a la ventana, o sal del bar, que ya es de noche'
 
             else:
-                weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(night['main']['temp'],
-                                                                                                                 night['main']['humidity'])
+                if night and night['main']:
+                    weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(night['main']['temp'],
+														     night['main']['humidity'])
 
-                if night['wind']:
-                    weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(night['wind']['speed'],
-                                                                                                       night['clouds']['all'])
+                    if night['wind']:
+                        weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(night['wind']['speed'],
+												       night['clouds']['all'])
 
-                else:
-                    weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(night['clouds']['all'])
+                    else:
+                        weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(night['clouds']['all'])
 
-            bot.sendMessage(update.message.chat_id, text=weather_message)
+                    bot.sendMessage(update.message.chat_id, text=weather_message)
 
     else:
         weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
