@@ -5,6 +5,7 @@ import logging
 import requests
 import sys
 import datetime
+import json
 
 from bs4 import BeautifulSoup
 from telegram.ext import Updater, Handler, CommandHandler, MessageHandler
@@ -51,22 +52,22 @@ def error(bot, update, error):
 
 # This is were the fun begins
 def apod(bot, update):
-    apod = requests.get('http://apod.nasa.gov/apod/astropix.html')
+    apod_key = config.get('APOD', 'DEMO_KEY')
+    payload = {'api_key', apod_key}
+    apod = requests.get('https://api.nasa.gov/planetary/apod', params=payload)
     if apod.status_code > 299:
         bot.sendMessage(update.message.chat_id, text='La NASA esta como las grecas, así que no hay APOD.')
         return
 
-    soup = BeautifulSoup(apod.text, 'html.parser')
-    img_url = 'http://apod.nasa.gov/'
-    img_url += soup.find_all('img')[0]['src']
-    meta = "Astronomy Picture of the Day"
-    for tag in soup.find_all('meta'):
-        if tag['name'] == 'keywords':
-            meta = tag['content']
+    data = apod.json()
+    img_url = data['url']
+    title = apod['title']
+    description = apod['explanation']
 
-    bot.sendMessage(update.message.chat_id, text=meta)
+    bot.sendMessage(update.message.chat_id, text=title)
     bot.sendChatAction(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
     bot.sendPhoto(update.message.chat_id, photo=img_url)
+    bot.sendMessage(update.message.chat_id, text=description)
 
 
 def tiempo(bot, update):
