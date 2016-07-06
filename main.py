@@ -134,7 +134,7 @@ def tiempo(bot, update):
 def faselunar(bot, update):
     fases = [
         "nueva 🌑",
-        "creciente 🌒"
+        "creciente 🌒",
         "cuarto creciente 🌓",
         "creciente gibosa 🌔",
         "llena 🌕",
