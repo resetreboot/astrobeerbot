@@ -61,8 +61,8 @@ def apod(bot, update):
 
     data = apod.json()
     img_url = data['url']
-    title = apod['title']
-    description = apod['explanation']
+    title = data['title']
+    description = data['explanation']
 
     bot.sendMessage(update.message.chat_id, text=title)
     bot.sendChatAction(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
