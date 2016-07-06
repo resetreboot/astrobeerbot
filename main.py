@@ -5,10 +5,10 @@ import logging
 import requests
 import sys
 import datetime
-import json
+import random
 
 from bs4 import BeautifulSoup
-from telegram.ext import Updater, Handler, CommandHandler, MessageHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import ChatAction
 
 from config import config
@@ -182,6 +182,19 @@ def manchas(bot, update):
     bot.sendPhoto(update.message.chat_id, photo=img_url)
 
 
+def randomchat(bot, update):
+    msg = update.message.text.lower()
+
+    if "jawa" in msg:
+        reply = random.choice([
+            "Y un objetivo de regalo.",
+            "Te lo dejo a mitad de precio, porque la caja está abierta.",
+            "Hombre, es un poco básico este ocular de 9mm de 70 euros."
+        ])
+
+    bot.sendMessage(update.message.chat_id, text=reply)
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -199,6 +212,9 @@ def main():
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
     dispatcher.add_handler(CommandHandler("faselunar", faselunar))
     dispatcher.add_handler(CommandHandler("manchas", manchas))
+
+    # on noncommand i.e message - echo the message on Telegram
+    dispatcher.add_handler(MessageHandler([Filters.text], randomchat))
 
     # log all errors
     dispatcher.add_error_handler(error)
