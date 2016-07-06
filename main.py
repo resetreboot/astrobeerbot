@@ -133,14 +133,14 @@ def tiempo(bot, update):
 
 def faselunar(bot, update):
     fases = [
-        "nueva",
-        "creciente"
-        "cuarto creciente",
-        "creciente gibosa",
-        "llena",
-        "gibosa menguante",
-        "cuarto menguante",
-        "menguante"
+        "nueva 🌑",
+        "creciente 🌒"
+        "cuarto creciente 🌓",
+        "creciente gibosa 🌔",
+        "llena 🌕",
+        "gibosa menguante 🌖",
+        "cuarto menguante 🌗",
+        "menguante 🌘"
     ]
     today = datetime.datetime.now()
     year = today.year
@@ -160,6 +160,7 @@ def faselunar(bot, update):
     b = (jd * 8) + 0.5
     b = int(b % 7)
 
+    print("Lunar phase: {0}".format(b))
     message = "Hoy tenemos luna " + fases[b]
     bot.sendMessage(update.message.chat_id, text=message)
 
