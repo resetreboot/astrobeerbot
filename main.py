@@ -53,7 +53,7 @@ def error(bot, update, error):
 # This is were the fun begins
 def apod(bot, update):
     apod_key = config.get('APOD', 'DEMO_KEY')
-    payload = {'api_key', apod_key}
+    payload = {'api_key': apod_key}
     apod = requests.get('https://api.nasa.gov/planetary/apod', params=payload)
     if apod.status_code > 299:
         bot.sendMessage(update.message.chat_id, text='La NASA esta como las grecas, así que no hay APOD.')
