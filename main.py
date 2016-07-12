@@ -189,7 +189,10 @@ def randomchat(bot, update):
         reply = random.choice([
             "Y un objetivo de regalo.",
             "Te lo dejo a mitad de precio, porque la caja está abierta.",
-            "Hombre, es un poco básico este ocular de 9mm de 70 euros."
+            "Hombre, es un poco básico este ocular de 9mm de 70 euros.",
+            "Sólo se ha usado una vez",
+            "Tengo stock de sobra",
+            "Estos los estoy vendiendo muy bien"
         ])
 
     bot.sendMessage(update.message.chat_id, text=reply)
