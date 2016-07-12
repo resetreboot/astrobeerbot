@@ -184,6 +184,7 @@ def manchas(bot, update):
 
 def randomchat(bot, update):
     msg = update.message.text.lower()
+    reply = None
 
     if "jawa" in msg:
         reply = random.choice([
@@ -192,7 +193,8 @@ def randomchat(bot, update):
             "Hombre, es un poco básico este ocular de 9mm de 70 euros."
         ])
 
-    bot.sendMessage(update.message.chat_id, text=reply)
+    if reply is not None:
+        bot.sendMessage(update.message.chat_id, text=reply)
 
 
 def main():
