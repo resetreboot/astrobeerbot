@@ -206,25 +206,24 @@ def randomchat(bot, update):
 
 def estanoche(bot, update):
     # Initalize coordinates
-    lan = None
+    lon = None
     lat = None
 
     # TODO pass location as argument an resolve coordinates
 
-    if not lan or not lat:
+    if not lon or not lat:
         # Yeah, Robledo de Chavela coordinates by default
         lat = 40.498333
         lon = -4.238889
 
     # Building URL to query the service
-    url_service = 'http://202.127.24.18/bin/astro.php?lon='
-    url_params = '&ac=0&unit=metric&output=json&tzshift=0'
-    url_gen = url_service + str(lon) + '&lat=' + str(lat) + url_params
+    url_service = 'http://202.127.24.18/bin/astro.php'
+    url_params = {'lon': str(lon), 'lat': str(lat), 'output': "json", 'tzshift': "0", 'unit': "metric", 'ac': "0"}
 
     # Query service
-    timer7 = requests.get(url_gen)
+    timer7 = requests.get(url_service, params=url_params)
     if timer7.status_code > 299:
-        bot.sendMessage(update.message.chat_id, text='El servicio de informacion astronomica no esta disponible.')
+        bot.sendMessage(update.message.chat_id, text='Servicio de informacion astronómica esta a por uvas. Relax')
         return
 
     json_timer7 = timer7.json()

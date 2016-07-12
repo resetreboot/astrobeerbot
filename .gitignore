@@ -8,3 +8,4 @@ share/
 *.swp
 pip-selfcheck.json
 config.py
+.idea/*
