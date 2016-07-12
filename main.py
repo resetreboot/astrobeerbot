@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-#! /usr/bin/env python
+# ! /usr/bin/env python
 
 import logging
 import requests
 import sys
 import datetime
 import random
+import json
 
 from bs4 import BeautifulSoup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -115,15 +116,18 @@ def tiempo(bot, update):
 
             else:
                 if night and night['main']:
-                    weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(night['main']['temp'],
-                                                                                                                     night['main']['humidity'])
+                    weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(
+                        night['main']['temp'],
+                        night['main']['humidity'])
 
                     if night['wind']:
-                        weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(night['wind']['speed'],
-                                                                                                           night['clouds']['all'])
+                        weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(
+                            night['wind']['speed'],
+                            night['clouds']['all'])
 
                     else:
-                        weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(night['clouds']['all'])
+                        weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(
+                            night['clouds']['all'])
 
                     bot.sendMessage(update.message.chat_id, text=weather_message)
 
@@ -154,7 +158,7 @@ def faselunar(bot, update):
 
     month += 1
     c = 365.25 * year
-    e = 30.6 * month    # Blame C coders saving on characters...
+    e = 30.6 * month  # Blame C coders saving on characters...
     jd = c + e + day - 694039.09
     jd /= 29.53
     jd -= round(jd)
@@ -200,6 +204,84 @@ def randomchat(bot, update):
         bot.sendMessage(update.message.chat_id, text=reply)
 
 
+def estanoche(bot, update):
+    # Initalize coordinates
+    lon = None
+    lat = None
+
+    # TODO pass location as argument an resolve coordinates
+
+    if not lon or not lat:
+        # Yeah, Robledo de Chavela coordinates by default
+        lat = 40.498333
+        lon = -4.238889
+
+    # Building URL to query the service
+    url_service = 'http://202.127.24.18/bin/astro.php'
+    url_params = {'lon': str(lon), 'lat': str(lat), 'output': "json", 'tzshift': "0", 'unit': "metric", 'ac': "0"}
+
+    # Query service
+    timer7 = requests.get(url_service, params=url_params)
+    if timer7.status_code > 299:
+        bot.sendMessage(update.message.chat_id, text='Servicio de informacion astronómica esta a por uvas. Relax')
+        return
+
+    json_timer7 = timer7.json()
+
+    timer7_data = json_timer7["dataseries"][1]
+    timer7_cloud = json_timer7["dataseries"][1]["cloudcover"]
+    timer7_seeing = json_timer7["dataseries"][1]["seeing"]
+    timer7_transparency = json_timer7["dataseries"][1]["transparency"]
+    timer7_temp = json_timer7["dataseries"][1]["temp2m"]
+    timer7_precipitation = json_timer7["dataseries"][1]["prec_type"]
+
+    # Conditions where observation is imposible: 100% cloud or rain
+    if timer7_precipitation == "rain":
+        bot.sendMessage(update.message.chat_id, text='Esta noche llueve en Base Alfa, deja el telescopio en casa.')
+        return
+    if timer7_cloud > 5:
+        bot.sendMessage(update.message.chat_id, text='Demasiado nublado en Base Alfa para hacer observación.')
+        return
+
+    # Compose messages about clouds
+    if 3 < timer7_cloud < 5:
+        mensaje_cloud = " habrá bastantes nubes"
+    elif 3 > timer7_cloud > 1:
+        mensaje_cloud = " habrá pocas nubes"
+    elif timer7_cloud == 1:
+        mensaje_cloud = " habrá cielo despejado"
+
+    # Compose messages about seeing
+    if timer7_seeing > 6:
+        mensaje_seeing = " insuficiente seeing"
+    elif 6 >= timer7_seeing > 4:
+        mensaje_seeing = " bastante poco seeing"
+    elif 4 >= timer7_seeing > 2:
+        mensaje_seeing = " seeing bastante aceptable"
+    elif 2 >= timer7_seeing > 0:
+        mensaje_seeing = " seeing estupendo"
+
+    # Compose messages about transparency
+    if timer7_transparency > 6:
+        mensaje_transparency = " insuficiente transparencia atmosferica"
+    elif 6 >= timer7_transparency > 4:
+        mensaje_transparency = " bastante poca transparencia atmosferica"
+    elif 4 >= timer7_transparency > 2:
+        mensaje_transparency = " transparencia atmosferica bastante aceptable"
+    elif 2 >= timer7_transparency > 0:
+        mensaje_transparency = " transparencia atmosferica estupenda"
+
+    # Message about temperature
+    mensaje_temp = " y una temperatura de " + str(timer7_temp) + " grados celsius (via timer7)"
+
+    # Now compose full message
+    mensaje = "(6h) Esta noche en Robledo de Chavela" + mensaje_cloud + "," + mensaje_seeing + "," + mensaje_transparency + mensaje_temp
+
+    # Vomit the response
+    bot.sendMessage(update.message.chat_id, text=mensaje)
+    return
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -217,6 +299,7 @@ def main():
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
     dispatcher.add_handler(CommandHandler("faselunar", faselunar))
     dispatcher.add_handler(CommandHandler("manchas", manchas))
+    dispatcher.add_handler(CommandHandler("estanoche", estanoche))
 
     # on noncommand i.e message - echo the message on Telegram
     dispatcher.add_handler(MessageHandler([Filters.text], randomchat))
