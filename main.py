@@ -96,6 +96,18 @@ def autoapod(bot, update, job_queue):
     bot.sendMessage(chat_id, text="APOD automática activada, cada día a esta hora os la traigo. ¿Una cervecita para celebrarlo?")
 
 
+def stopautoapod(bot, update):
+    chat_id = update.message.chat_id
+
+    if chat_id in autoapods:
+        job = autoapods[chat_id]
+        job.schedule_removal()
+        del autoapods[chat_id]
+
+    else:
+        bot.sendMessage(chat_id, text="No hay nada programado, astropirado.")
+
+
 def tiempo(bot, update):
     appkey = config.get('OWM')
     if not appkey:
@@ -322,6 +334,7 @@ def main():
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("apod", apod))
     dispatcher.add_handler(CommandHandler("autoapod", autoapod, pass_job_queue=True))
+    dispatcher.add_handler(CommandHandler("stopautoapod", stopautoapod, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
     dispatcher.add_handler(CommandHandler("faselunar", faselunar))
     dispatcher.add_handler(CommandHandler("manchas", manchas))
