@@ -6,10 +6,10 @@ import requests
 import sys
 import datetime
 import random
-import json
 
 from bs4 import BeautifulSoup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import (Updater, CommandHandler, MessageHandler,
+                          Filters, Job)
 from telegram import ChatAction
 
 from config import config
@@ -31,6 +31,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
+autoapods = dict()
+
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
@@ -44,6 +46,8 @@ Para mostrar la APOD actual, escribe /apod y te la mostraré.
 Con /tiempo te diré qué tal se presenta el tiempo esta misma noche.
 Si usas /faselunar te diré qué fase lunar tenemos hoy.
 Para ver las manchas solares, /manchas te mostrará el sol actualizado.
+El comando /estanoche te dirá qué tal están los parámetros de tiempo específicos para
+astrónomos esta noche.
                     """)
 
 
@@ -52,12 +56,12 @@ def error(bot, update, error):
 
 
 # This is were the fun begins
-def apod(bot, update):
+def fetch_apod(bot, chat_id):
     apod_key = config.get('APOD', 'DEMO_KEY')
     payload = {'api_key': apod_key}
     apod = requests.get('https://api.nasa.gov/planetary/apod', params=payload)
     if apod.status_code > 299:
-        bot.sendMessage(update.message.chat_id, text='La NASA esta como las grecas, así que no hay APOD.')
+        bot.sendMessage(chat_id, text='La NASA esta como las grecas, así que no hay APOD.')
         return
 
     data = apod.json()
@@ -65,10 +69,31 @@ def apod(bot, update):
     title = data['title']
     description = data['explanation']
 
-    bot.sendMessage(update.message.chat_id, text=title)
-    bot.sendChatAction(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
-    bot.sendPhoto(update.message.chat_id, photo=img_url)
-    bot.sendMessage(update.message.chat_id, text=description)
+    bot.sendMessage(chat_id, text=title)
+    bot.sendChatAction(chat_id, action=ChatAction.UPLOAD_PHOTO)
+    bot.sendPhoto(chat_id, photo=img_url)
+    bot.sendMessage(chat_id, text=description)
+
+
+def apod(bot, update):
+    fetch_apod(bot, update.message.chat_id)
+
+
+def autoapod_job(bot, job):
+    fetch_apod(bot, job.context)
+
+
+def autoapod(bot, update, job_queue):
+    chat_id = update.message.chat_id    # Remember the channel where the command came from
+    if chat_id in autoapods:
+        old_job = autoapods[chat_id]
+        old_job.schedule_removal()
+
+    job = Job(autoapod_job, 3600*24, repeat=True, context=chat_id)
+    autoapods[chat_id] = job
+    job_queue.put(job)
+
+    bot.sendMessage(chat_id, text="APOD automática activada, cada día a esta hora os la traigo. ¿Una cervecita para celebrarlo?")
 
 
 def tiempo(bot, update):
@@ -229,11 +254,11 @@ def estanoche(bot, update):
     json_timer7 = timer7.json()
 
     timer7_data = json_timer7["dataseries"][1]
-    timer7_cloud = json_timer7["dataseries"][1]["cloudcover"]
-    timer7_seeing = json_timer7["dataseries"][1]["seeing"]
-    timer7_transparency = json_timer7["dataseries"][1]["transparency"]
-    timer7_temp = json_timer7["dataseries"][1]["temp2m"]
-    timer7_precipitation = json_timer7["dataseries"][1]["prec_type"]
+    timer7_cloud = timer7_data["cloudcover"]
+    timer7_seeing = timer7_data["seeing"]
+    timer7_transparency = timer7_data["transparency"]
+    timer7_temp = timer7_data["temp2m"]
+    timer7_precipitation = timer7_data["prec_type"]
 
     # Conditions where observation is imposible: 100% cloud or rain
     if timer7_precipitation == "rain":
@@ -296,6 +321,7 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("apod", apod))
+    dispatcher.add_handler(CommandHandler("autoapod", autoapod, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
     dispatcher.add_handler(CommandHandler("faselunar", faselunar))
     dispatcher.add_handler(CommandHandler("manchas", manchas))
