@@ -9,7 +9,8 @@ import random
 
 from bs4 import BeautifulSoup
 from telegram.ext import (Updater, CommandHandler, MessageHandler,
-                          Filters, Job)
+                          Filters)
+from telegram.ext.jobqueue import Job
 from telegram import ChatAction
 
 from config import config
@@ -42,12 +43,11 @@ def start(bot, update):
 
 def help(bot, update):
     bot.sendMessage(update.message.chat_id, text="""Astro Beer Bot v1.0:
-Para mostrar la APOD actual, escribe /apod y te la mostraré.
+Para mostrar la APOD actual, escribe /apod y te la mostraré, con /autoapod la programo para traerla todos los días.
 Con /tiempo te diré qué tal se presenta el tiempo esta misma noche.
 Si usas /faselunar te diré qué fase lunar tenemos hoy.
 Para ver las manchas solares, /manchas te mostrará el sol actualizado.
-El comando /estanoche te dirá qué tal están los parámetros de tiempo específicos para
-astrónomos esta noche.
+El comando /estanoche te dirá qué tal están los parámetros de tiempo específicos para astrónomos esta noche.
                     """)
 
 
