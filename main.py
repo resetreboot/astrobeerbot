@@ -70,8 +70,13 @@ def fetch_apod(bot, chat_id):
     description = data['explanation']
 
     bot.sendMessage(chat_id, text=title)
-    bot.sendChatAction(chat_id, action=ChatAction.UPLOAD_PHOTO)
-    bot.sendPhoto(chat_id, photo=img_url)
+    if data['media_type'] == 'image':
+        bot.sendChatAction(chat_id, action=ChatAction.UPLOAD_PHOTO)
+        bot.sendPhoto(chat_id, photo=img_url)
+
+    else:
+        bot.sendMessage(chat_id, text=img_url)
+
     bot.sendMessage(chat_id, text=description)
 
 
