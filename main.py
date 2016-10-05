@@ -212,7 +212,7 @@ def faselunar(bot, update):
 
 
 def manchas(bot, update):
-    soho = requests.get('http://sohowww.nascom.nasa.gov/sunspots/')
+    soho = requests.get('https://sohowww.nascom.nasa.gov/sunspots/', verify=False)
     if soho.status_code > 299:
         bot.sendMessage(update.message.chat_id, text='La NASA esta como las grecas, así que no hay SOHO.')
         return
