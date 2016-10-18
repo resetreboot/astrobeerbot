@@ -113,17 +113,17 @@ def stopautoapod(bot, update):
         bot.sendMessage(chat_id, text="No hay nada programado, astropirado.")
 
 
-def tiempo(bot, update):
+def tiempo(bot, update, args):
     appkey = config.get('OWM')
     if not appkey:
         bot.sendMessage(update.message.chat_id, text='Deja la cerveza y configura el servicio de OWM.')
         return
 
-    # TODO: Accept parameters on this call
-    city = None
+    # Now we accept parameters on this call
+    city = " ".join(args)
 
     if not city:
-        city = "Madrid,ES"
+        city = "Madrid"
 
     params = {"q": city, "APPID": appkey, "units": "metric"}
 
@@ -139,13 +139,13 @@ def tiempo(bot, update):
                     current_day -= datetime.timedelta(hours=4)
 
                 if day == 1:
-                    date_string = "Mañana por la noche"
+                    date_string = "Mañana por la noche en " + city
 
                 else:
-                    date_string = "El {0} por la noche".format(WEEKDAYS[current_day.isoweekday()])
+                    date_string = "El {0} por la noche en ".format(WEEKDAYS[current_day.isoweekday()]) + city
 
             else:
-                date_string = "Esta noche"
+                date_string = "Esta noche en " + city
 
             night = None
             for element in weather:
@@ -338,9 +338,17 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("apod", apod))
+<<<<<<< HEAD
+<<<<<<< e437e84b85714df7c4e3e70ded45125f4dc28512
     dispatcher.add_handler(CommandHandler("autoapod", autoapod, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler("stopautoapod", stopautoapod, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
+=======
+    dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
+>>>>>>> Now function "tiempo" admits a locality as a parameter
+=======
+    dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
+>>>>>>> 4f8edb973f565bb9af43b9fc1e8f27965d405544
     dispatcher.add_handler(CommandHandler("faselunar", faselunar))
     dispatcher.add_handler(CommandHandler("manchas", manchas))
     dispatcher.add_handler(CommandHandler("estanoche", estanoche))
