@@ -338,17 +338,9 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("apod", apod))
-<<<<<<< HEAD
-<<<<<<< e437e84b85714df7c4e3e70ded45125f4dc28512
     dispatcher.add_handler(CommandHandler("autoapod", autoapod, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler("stopautoapod", stopautoapod, pass_job_queue=True))
-    dispatcher.add_handler(CommandHandler("tiempo", tiempo))
-=======
     dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
->>>>>>> Now function "tiempo" admits a locality as a parameter
-=======
-    dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
->>>>>>> 4f8edb973f565bb9af43b9fc1e8f27965d405544
     dispatcher.add_handler(CommandHandler("faselunar", faselunar))
     dispatcher.add_handler(CommandHandler("manchas", manchas))
     dispatcher.add_handler(CommandHandler("estanoche", estanoche))
