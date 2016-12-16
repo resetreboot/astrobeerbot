@@ -127,6 +127,8 @@ def tiempo(bot, update, args):
 
     params = {"q": city, "APPID": appkey, "units": "metric"}
 
+    weather_message = "A alguien se le ha pirado (jeje) la perola y no me ha dicho lo que tengo que contaros..."
+
     weatherdata = requests.get('http://api.openweathermap.org/data/2.5/forecast/city', params=params)
     if "list" in weatherdata.json():
         weather = weatherdata.json()['list']
@@ -171,12 +173,10 @@ def tiempo(bot, update, args):
                         weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(
                             night['clouds']['all'])
 
-                    bot.sendMessage(update.message.chat_id, text=weather_message)
-
     else:
         weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
-        bot.sendMessage(update.message.chat_id, text=weather_message)
 
+    bot.sendMessage(update.message.chat_id, text=weather_message)
 
 def faselunar(bot, update):
     fases = [
