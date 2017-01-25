@@ -153,28 +153,32 @@ def tiempo(bot, update, args):
             night = None
             for element in weather:
                 forecast_time = datetime.datetime.fromtimestamp(element['dt'])
-                if forecast_time.month == current_day.month and forecast_time.day == current_day.day and forecast_time.hour >= 23:
+                if forecast_time.month == current_day.month and forecast_time.day == current_day.day and forecast_time.hour >= 23 or forecast_time.hour <= 4:
                     night = element
+                    break
 
-                if not night and day == 0:
-                    weather_message += "Asómate a la ventana, o sal del bar, que ya es de noche.\n"
+            if not night and day == 0:
+                weather_message += "Asómate a la ventana, o sal del bar, que ya es de noche.\n"
+
+            else:
+                if night and night['main']:
+                    weather_message += date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(
+                        night['main']['temp'],
+                        night['main']['humidity'])
+
+                    if night['wind']:
+                        weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(
+                            night['wind']['speed'],
+                            night['clouds']['all'])
+
+                    else:
+                        weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(
+                            night['clouds']['all'])
+
+                    weather_message += "\n"
 
                 else:
-                    if night and night['main']:
-                        weather_message += date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(
-                            night['main']['temp'],
-                            night['main']['humidity'])
-
-                        if night['wind']:
-                            weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(
-                                night['wind']['speed'],
-                                night['clouds']['all'])
-
-                        else:
-                            weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(
-                                night['clouds']['all'])
-
-                        weather_message += "\n"
+                    print("Main not found: {}".format(night))
 
     else:
         weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
