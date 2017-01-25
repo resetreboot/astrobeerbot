@@ -153,7 +153,7 @@ def tiempo(bot, update, args):
             night = None
             for element in weather:
                 forecast_time = datetime.datetime.fromtimestamp(element['dt'])
-                if forecast_time.month == current_day.month and forecast_time.day == current_day.day and forecast_time.hour >= 23 or forecast_time.hour <= 4:
+                if forecast_time.month == current_day.month and forecast_time.day == current_day.day and (forecast_time.hour >= 23 or forecast_time.hour <= 4):
                     night = element
                     break
 
