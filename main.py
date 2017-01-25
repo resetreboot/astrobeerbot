@@ -125,7 +125,7 @@ def tiempo(bot, update, args):
     if not city:
         city = "Madrid"
 
-    params = {"q": city, "APPID": appkey, "units": "metric"}
+    params = {"q": city.lower(), "APPID": appkey, "units": "metric"}
 
     weather_message = "A alguien se le ha pirado (jeje) la perola y no me ha dicho lo que tengo que contaros..."
 
@@ -134,6 +134,7 @@ def tiempo(bot, update, args):
         weather = weatherdata.json()['list']
         today = datetime.datetime.now()
         current_day = today
+        weather_message = "El tiempo en los próximos días:\n"
         for day in range(0, 5):
             if day > 0:
                 current_day = today + datetime.timedelta(days=day)
@@ -156,11 +157,11 @@ def tiempo(bot, update, args):
                     night = element
 
             if not night and day == 0:
-                weather_message = 'Asómate a la ventana, o sal del bar, que ya es de noche'
+                weather_message += "Asómate a la ventana, o sal del bar, que ya es de noche.\n"
 
             else:
                 if night and night['main']:
-                    weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(
+                    weather_message += date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(
                         night['main']['temp'],
                         night['main']['humidity'])
 
@@ -172,6 +173,8 @@ def tiempo(bot, update, args):
                     else:
                         weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(
                             night['clouds']['all'])
+
+                    weather_message += "\n"
 
     else:
         weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
