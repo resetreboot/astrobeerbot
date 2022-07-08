@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# ! /usr/bin/env python
+# ! /usr/bin/env python3
 
 import logging
 import requests
@@ -7,11 +7,13 @@ import sys
 import datetime
 import random
 
+from typing import Any
+
 from bs4 import BeautifulSoup
 from telegram.ext import (Updater, CommandHandler, MessageHandler,
-                          Filters)
+                          Filters, CallbackContext, Update)
 from telegram.ext.jobqueue import Job
-from telegram import ChatAction
+from telegram import ChatAction, Bot
 
 from config import config
 
@@ -37,12 +39,12 @@ autoapods = dict()
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
-def start(bot, update):
-    bot.sendMessage(update.message.chat_id, text='Traigo las cervezas, vosotros los telescopios. ¡Vamos allá!')
+def start(update: Update, context: CallbackContext):
+    context.bot.send_message(update.message.chat_id, text='Traigo las cervezas, vosotros los telescopios. ¡Vamos allá!')
 
 
-def help(bot, update):
-    bot.sendMessage(update.message.chat_id, text="""Astro Beer Bot v1.0:
+def help(update: Update, context: CallbackContext):
+    context.bot.send_message(update.message.chat_id, text="""Astro Beer Bot v1.0:
 Para mostrar la APOD actual, escribe /apod y te la mostraré, con /autoapod la programo para traerla todos los días.
 Con /tiempo te diré qué tal se presenta el tiempo esta misma noche.
 Si usas /faselunar te diré qué fase lunar tenemos hoy.
@@ -51,17 +53,17 @@ El comando /estanoche te dirá qué tal están los parámetros de tiempo especí
                     """)
 
 
-def error(bot, update, error):
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+def error(update: Update, context: CallbackContext):
+    logger.warn('Update "%s" caused error "%s"' % (update, context.error))
 
 
 # This is were the fun begins
-def fetch_apod(bot, chat_id):
+def fetch_apod(bot: Bot, chat_id: Any):
     apod_key = config.get('APOD', 'DEMO_KEY')
     payload = {'api_key': apod_key}
     apod = requests.get('https://api.nasa.gov/planetary/apod', params=payload)
     if apod.status_code > 299:
-        bot.sendMessage(chat_id, text='La NASA esta como las grecas, así que no hay APOD.')
+        bot.send_message(chat_id, text='La NASA esta como las grecas, así que no hay APOD.')
         return
 
     data = apod.json()
@@ -69,26 +71,28 @@ def fetch_apod(bot, chat_id):
     title = data['title']
     description = data['explanation']
 
-    bot.sendMessage(chat_id, text=title)
+    bot.send_message(chat_id, text=title)
     if data['media_type'] == 'image':
-        bot.sendChatAction(chat_id, action=ChatAction.UPLOAD_PHOTO)
-        bot.sendPhoto(chat_id, photo=img_url)
+        bot.send_chat_action(chat_id, action=ChatAction.UPLOAD_PHOTO)
+        bot.send_photo(chat_id, photo=img_url)
 
     else:
-        bot.sendMessage(chat_id, text=img_url)
+        bot.send_message(chat_id, text=img_url)
 
-    bot.sendMessage(chat_id, text=description)
-
-
-def apod(bot, update):
-    fetch_apod(bot, update.message.chat_id)
+    bot.send_message(chat_id, text=description)
 
 
-def autoapod_job(bot, job):
-    fetch_apod(bot, job.context)
+def apod(update: Update, context: CallbackContext):
+    fetch_apod(context.bot, update.message.chat_id)
 
 
-def autoapod(bot, update, job_queue):
+def autoapod_job(context: CallbackContext):
+    fetch_apod(context.bot, context.job.context)
+
+
+def autoapod(update: Update, context: CallbackContext, job_queue):
+    bot = context.bot
+
     chat_id = update.message.chat_id    # Remember the channel where the command came from
     if chat_id in autoapods:
         old_job = autoapods[chat_id]
@@ -98,10 +102,12 @@ def autoapod(bot, update, job_queue):
     autoapods[chat_id] = job
     job_queue.put(job)
 
-    bot.sendMessage(chat_id, text="APOD automática activada, cada día a esta hora os la traigo. ¿Una cervecita para celebrarlo?")
+    bot.send_message(chat_id, text="APOD automática activada, cada día a esta hora os la traigo. ¿Una cervecita para celebrarlo?")
 
 
-def stopautoapod(bot, update):
+def stopautoapod(update: Update, context: CallbackContext):
+    bot = context.bot
+
     chat_id = update.message.chat_id
 
     if chat_id in autoapods:
@@ -110,13 +116,16 @@ def stopautoapod(bot, update):
         del autoapods[chat_id]
 
     else:
-        bot.sendMessage(chat_id, text="No hay nada programado, astropirado.")
+        bot.send_message(chat_id, text="No hay nada programado, astropirado.")
 
 
-def tiempo(bot, update, args):
+def tiempo(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
+
     appkey = config.get('OWM')
     if not appkey:
-        bot.sendMessage(update.message.chat_id, text='Deja la cerveza y configura el servicio de OWM.')
+        bot.send_message(update.message.chat_id, text='Deja la cerveza y configura el servicio de OWM.')
         return
 
     # Now we accept parameters on this call
@@ -183,9 +192,12 @@ def tiempo(bot, update, args):
     else:
         weather_message = 'El meteorólogo anda chuzo, así que no sabe de chuzos de punta'
 
-    bot.sendMessage(update.message.chat_id, text=weather_message)
+    bot.send_message(update.message.chat_id, text=weather_message)
 
-def faselunar(bot, update):
+
+def faselunar(update: Update, context: CallbackContext):
+    bot = context.bot
+
     fases = [
         "nueva 🌑",
         "creciente 🌒",
@@ -215,13 +227,14 @@ def faselunar(bot, update):
     b = int(b % 7)
 
     message = "Hoy tenemos luna " + fases[b]
-    bot.sendMessage(update.message.chat_id, text=message)
+    bot.send_message(update.message.chat_id, text=message)
 
 
-def manchas(bot, update):
+def manchas(update: Update, context: CallbackContext):
+    bot = context.bot
     soho = requests.get('https://sohowww.nascom.nasa.gov/sunspots/', verify=False)
     if soho.status_code > 299:
-        bot.sendMessage(update.message.chat_id, text='La NASA esta como las grecas, así que no hay SOHO.')
+        bot.send_message(update.message.chat_id, text='La NASA esta como las grecas, así que no hay SOHO.')
         return
 
     soup = BeautifulSoup(soho.text, 'html.parser')
@@ -231,11 +244,12 @@ def manchas(bot, update):
         if 'synoptic' in tag['src']:
             img_url = 'http://sohowww.nascom.nasa.gov' + tag['src']
 
-    bot.sendChatAction(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
-    bot.sendPhoto(update.message.chat_id, photo=img_url)
+    bot.send_chat_action(update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
+    bot.send_photo(update.message.chat_id, photo=img_url)
 
 
-def randomchat(bot, update):
+def randomchat(update: Update, context: CallbackContext):
+    bot = context.bot
     msg = update.message.text.lower()
     reply = None
 
@@ -250,10 +264,11 @@ def randomchat(bot, update):
         ])
 
     if reply is not None:
-        bot.sendMessage(update.message.chat_id, text=reply)
+        bot.send_message(update.message.chat_id, text=reply)
 
 
-def estanoche(bot, update):
+def estanoche(update: Update, context: CallbackContext):
+    bot = context.bot
     # Initalize coordinates
     lon = None
     lat = None
@@ -272,7 +287,7 @@ def estanoche(bot, update):
     # Query service
     timer7 = requests.get(url_service, params=url_params)
     if timer7.status_code > 299:
-        bot.sendMessage(update.message.chat_id, text='Servicio de informacion astronómica esta a por uvas. Relax')
+        bot.send_message(update.message.chat_id, text='Servicio de informacion astronómica esta a por uvas. Relax')
         return
 
     json_timer7 = timer7.json()
@@ -286,10 +301,10 @@ def estanoche(bot, update):
 
     # Conditions where observation is imposible: 100% cloud or rain
     if timer7_precipitation == "rain":
-        bot.sendMessage(update.message.chat_id, text='Esta noche llueve en Base Alfa, deja el telescopio en casa.')
+        bot.send_message(update.message.chat_id, text='Esta noche llueve en Base Alfa, deja el telescopio en casa.')
         return
     if timer7_cloud > 5:
-        bot.sendMessage(update.message.chat_id, text='Demasiado nublado en Base Alfa para hacer observación.')
+        bot.send_message(update.message.chat_id, text='Demasiado nublado en Base Alfa para hacer observación.')
         return
 
     # Compose messages about clouds
@@ -327,7 +342,7 @@ def estanoche(bot, update):
     mensaje = "(6h) Esta noche en Robledo de Chavela" + mensaje_cloud + "," + mensaje_seeing + "," + mensaje_transparency + mensaje_temp
 
     # Vomit the response
-    bot.sendMessage(update.message.chat_id, text=mensaje)
+    bot.send_message(update.message.chat_id, text=mensaje)
     return
 
 
@@ -338,7 +353,7 @@ def main():
         print("Please, configure your token first")
         sys.exit(1)
 
-    updater = Updater(token)
+    updater = Updater(token, use_context=True)
     dispatcher = updater.dispatcher
 
     # on different commands - answer in Telegram
@@ -353,7 +368,7 @@ def main():
     dispatcher.add_handler(CommandHandler("estanoche", estanoche))
 
     # on noncommand i.e message - echo the message on Telegram
-    dispatcher.add_handler(MessageHandler([Filters.text], randomchat))
+    dispatcher.add_handler(MessageHandler(Filters.text, randomchat))
 
     # log all errors
     dispatcher.add_error_handler(error)
