@@ -11,9 +11,9 @@ from typing import Any
 
 from bs4 import BeautifulSoup
 from telegram.ext import (Updater, CommandHandler, MessageHandler,
-                          Filters, CallbackContext, Update)
+                          Filters, CallbackContext)
 from telegram.ext.jobqueue import Job
-from telegram import ChatAction, Bot
+from telegram import ChatAction, Bot, Update
 
 from config import config
 
